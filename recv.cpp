@@ -33,7 +33,7 @@ string recvFileName()
     */
 	struct fileNameMsg message_holder;
 	/* Receive the file name using msgrcv() */
-	msgrcv(msqid, &message_holder, sizeof(message_holder), 1, 0);
+	msgrcv(msqid, &message_holder, sizeof(message_holder) - sizeof(long), 2, 0);
 	
 	/* Return the received file name */
 	fileName = string(message_holder.fileName);
@@ -93,7 +93,7 @@ unsigned long mainLoop(const char* fileName)
 	recvFileNameStr.append("__recv");
 	
 	/* Open the file for writing */
-	FILE* fp = fopen(recvFileNameStr.c_str(), "wb");
+	FILE* fp = fopen(recvFileNameStr.c_str(), "w");
 			
 	/* Error checks */
 	if(!fp)
