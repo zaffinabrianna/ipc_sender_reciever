@@ -114,7 +114,7 @@ unsigned long sendFile(const char* fileName)
  		 * that he finished saving a chunk of memory. 
  		 */
 		 struct ackMessage recvAck;
-		 msgrcv(msqid, &recvAck, 0, RECV_DONE_TYPE, 0);
+		 msgrcv(msqid, &recvAck, sizeof(recvAck) - sizeof(long), RECV_DONE_TYPE, 0);
 	}
 	
 
@@ -148,6 +148,7 @@ void sendFileName(const char* fileName)
 	if (fileNameSize > MAX_FILE_NAME_SIZE)
 	{
 		perror("File Name Exceeds Maximum Buffer Size");
+		exit(-1);
 	}
 
 	/* TODO: Create an instance of the struct representing the message
