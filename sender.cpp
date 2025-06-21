@@ -32,12 +32,18 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	   like the file name and the id is like the file object.  Every System V object 
 	   on the system has a unique id, but different objects may have the same key.
 	*/
-	
+	// Use ftok("keyfile.txt", 'a') in order to generate the key.
+	ket_t key = ftok("keyfile.txt", 'a')
 
+	/*Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
+	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
+
+	/*Attach to the shared memory */
+	sharedMemPtr = shmat(shmid, NULL, 0);
 	
-	/* TODO: Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
-	/* TODO: Attach to the shared memory */
-	/* TODO: Attach to the message queue */
+	/*Attach to the message queue */
+	msqid = msgget(key, 0666 | IPC_CREAT);
+
 	/* Store the IDs and the pointer to the shared memory region in the corresponding function parameters */
 	
 }
@@ -50,7 +56,8 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
  */
 void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
-	/* TODO: Detach from shared memory */
+	/*Detach from shared memory */
+	shmdt(sharedMemPtr);
 }
 
 /**
@@ -94,23 +101,30 @@ unsigned long sendFile(const char* fileName)
 			exit(-1);
 		}
 		
-		/* TODO: count the number of bytes sent. */		
+		/*Count the number of bytes sent. */		
+		numBytesSent += sndMsg.size();
 			
 		/* TODO: Send a message to the receiver telling him that the data is ready
  		 * to be read (message of type SENDER_DATA_TYPE).
  		 */
-		
+		sndMsg.mtype = SENDER_DATA_TYPE;
+		msgsnd(msqid, &sndMsg, sizeof(sndMsg), - sizeof(long), 0);
+
 		/* TODO: Wait until the receiver sends us a message of type RECV_DONE_TYPE telling us 
  		 * that he finished saving a chunk of memory. 
  		 */
+		 struct ackMessage recvAck;
+		 msgrcv(msqid, &recvAck, 0, RECV_DONE_TYPE, 0);
 	}
 	
 
-	/** TODO: once we are out of the above loop, we have finished sending the file.
+	/* TODO: once we are out of the above loop, we have finished sending the file.
  	  * Lets tell the receiver that we have nothing more to send. We will do this by
  	  * sending a message of type SENDER_DATA_TYPE with size field set to 0. 	
 	  */
-
+	sndMsg.size = 0;
+	sndMsg.mtype = SENDER_DATA_TYPE;
+	msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0);
 		
 	/* Close the file */
 	fclose(fp);
@@ -131,16 +145,23 @@ void sendFileName(const char* fileName)
 	 * the maximum buffer size in the fileNameMsg
 	 * struct. If exceeds, then terminate with an error.
 	 */
+	if (fileNameSize > MAX_FILE_NAME_SIZE)
+	{
+		perror("File Name Exceeds Maximum Buffer Size");
+		exit();
+	}
 
 	/* TODO: Create an instance of the struct representing the message
 	 * containing the name of the file.
 	 */
-
+	struct fileNameMsg file_msg;
 	/* TODO: Set the message type FILE_NAME_TRANSFER_TYPE */
-
+	file_msg.mtype = FILE_NAME_TRANSFER_TYPE;
 	/* TODO: Set the file name in the message */
+	filename = string(file_msg.filename);
 
 	/* TODO: Send the message using msgsnd */
+	msgsnd(msqid, &file_msg, sizeof(filename), 0)
 }
 
 
