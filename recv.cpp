@@ -27,16 +27,18 @@ string recvFileName()
 {
 	/* The file name received from the sender */
 	string fileName;
-        
+    
 	/* TODO: declare an instance of the fileNameMsg struct to be
 	 * used for holding the message received from the sender.
          */
-
-        /* TODO: Receive the file name using msgrcv() */
+	struct fileNameMsg message_holder;
+		/* TODO: Receive the file name using msgrcv() */
+	msgrcv(msqid, &message_holder, sizeof(message_holder), 1, 0);
 	
 	/* TODO: return the received file name */
-	
-        return fileName;
+	filename = string(message_holder.filename)
+    
+	return fileName
 }
  /**
  * Sets up the shared memory segment and message queue
