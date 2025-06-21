@@ -22,11 +22,7 @@ void* sharedMemPtr;
  */
 void init(int& shmid, int& msqid, void*& sharedMemPtr)
 {
-	/* TODO: 
-        1. Create a file called keyfile.txt containing string "Hello world" (you may do
- 	    so manually or from the code).
-	2. Use ftok("keyfile.txt", 'a') in order to generate the key.
-	3. Use will use this key in the TODO's below. Use the same key for the queue
+	/* Use the same key for the queue
 	   and the shared memory segment. This also serves to illustrate the difference
  	   between the key and the id used in message queues and shared memory. The key is
 	   like the file name and the id is like the file object.  Every System V object 
@@ -34,15 +30,35 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	*/
 	// Use ftok("keyfile.txt", 'a') in order to generate the key.
 	key_t key = ftok("keyfile.txt", 'a');
+	if (key == -1)
+	{
+		perror("ftok");
+		exit(1);
+	}
 
 	/*Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
+	if (shmid == -1)
+	{
+		perror("shmid");
+		exit(1);
+	}
 
 	/*Attach to the shared memory */
 	sharedMemPtr = shmat(shmid, NULL, 0);
+	if (sharedMemPtr == -1)
+	{
+		perror("shmat");
+		exit(1);
+	}
 	
 	/*Attach to the message queue */
 	msqid = msgget(key, 0666 | IPC_CREAT);
+	if (msqid == -1)
+	{
+		perror("msqid");
+		exit(1);
+	}
 
 	/* Store the IDs and the pointer to the shared memory region in the corresponding function parameters */
 	
@@ -108,13 +124,21 @@ unsigned long sendFile(const char* fileName)
  		 * to be read (message of type SENDER_DATA_TYPE).
  		 */
 		sndMsg.mtype = SENDER_DATA_TYPE;
-		msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0);
+		if (msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0) == -1)
+		{
+			perror("msgsnd");
+			exit(1);
+		}
 
 		/* TODO: Wait until the receiver sends us a message of type RECV_DONE_TYPE telling us 
  		 * that he finished saving a chunk of memory. 
- 		 */
-		 struct ackMessage recvAck;
-		 msgrcv(msqid, &recvAck, sizeof(recvAck) - sizeof(long), RECV_DONE_TYPE, 0);
+ 		*/
+		struct ackMessage recvAck;
+		if (msgrcv(msqid, &recvAck, sizeof(recvAck) - sizeof(long), RECV_DONE_TYPE, 0) == -1)
+		{
+			perror("msgrcv");
+			exit(1);
+		}
 	}
 	
 
@@ -124,7 +148,11 @@ unsigned long sendFile(const char* fileName)
 	  */
 	sndMsg.size = 0;
 	sndMsg.mtype = SENDER_DATA_TYPE;
-	msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0);
+	if(msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0) == -1)
+	{
+		perror("msgsnd");
+		exit(1);
+	}
 		
 	/* Close the file */
 	fclose(fp);
@@ -141,7 +169,7 @@ void sendFileName(const char* fileName)
 	/* Get the length of the file name */
 	int fileNameSize = strlen(fileName);
 
-	/* TODO: Make sure the file name does not exceed 
+	/*Make sure the file name does not exceed 
 	 * the maximum buffer size in the fileNameMsg
 	 * struct. If exceeds, then terminate with an error.
 	 */
@@ -151,18 +179,22 @@ void sendFileName(const char* fileName)
 		exit(-1);
 	}
 
-	/* TODO: Create an instance of the struct representing the message
+	/*Create an instance of the struct representing the message
 	 * containing the name of the file.
 	 */
 	struct fileNameMsg file_msg;
-	/* TODO: Set the message type FILE_NAME_TRANSFER_TYPE */
+	/*Set the message type FILE_NAME_TRANSFER_TYPE */
 	file_msg.mtype = FILE_NAME_TRANSFER_TYPE;
 
-	/* TODO: Set the file name in the message */
+	/*Set the file name in the message */
 	strncpy(file_msg.fileName, fileName, MAX_FILE_NAME_SIZE);
 
-	/* TODO: Send the message using msgsnd */
-	msgsnd(msqid, &file_msg, sizeof(file_msg) - sizeof(long), 0);
+	/*Send the message using msgsnd */
+	if(msgsnd(msqid, &file_msg, sizeof(file_msg) - sizeof(long), 0) == -1)
+	{
+		perror("msgsnd");
+		exit(1);
+	}
 }
 
 
@@ -180,7 +212,7 @@ int main(int argc, char** argv)
 	init(shmid, msqid, sharedMemPtr);
 	
 	/* Send the name of the file */
-        sendFileName(argv[1]);
+    sendFileName(argv[1]);
 		
 	/* Send the file */
 	fprintf(stderr, "The number of bytes sent is %lu\n", sendFile(argv[1]));

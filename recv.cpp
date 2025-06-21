@@ -33,7 +33,11 @@ string recvFileName()
     */
 	struct fileNameMsg message_holder;
 	/* Receive the file name using msgrcv() */
-	msgrcv(msqid, &message_holder, sizeof(message_holder) - sizeof(long), FILE_NAME_TRANSFER_TYPE, 0);
+	if (msgrcv(msqid, &message_holder, sizeof(message_holder) - sizeof(long), FILE_NAME_TRANSFER_TYPE, 0) == -1)
+	{
+		perror("msgrcv");
+		exit(1);
+	}
 	
 	/* Return the received file name */
 	fileName = string(message_holder.fileName);
@@ -49,8 +53,7 @@ string recvFileName()
 void init(int& shmid, int& msqid, void*& sharedMemPtr)
 {
 	
-	/* 
-	3. Use will use this key in the TODO's below. Use the same key for the queue
+	/* Use the same key for the queue
 	   and the shared memory segment. This also serves to illustrate the difference
  	   between the key and the id used in message queues and shared memory. The key is
 	   like the file name and the id is like the file object.  Every System V object 
@@ -62,14 +65,29 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 
 	/*Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
+	if (shmid == -1)
+	{
+		perror("shmid");
+		exit(1);
+	}
 
-	/* TODO: Attach to the shared memory */
+	/*Attach to the shared memory */
 	sharedMemPtr = shmat(shmid, NULL, 0);
+	if (sharedMemPtr == -1)
+	{
+		perror("sharedMemPtr");
+		exit(1);
+	}
 
-	/* TODO: Create a message queue */
+	/*Create a message queue */
 	msqid = msgget(key, 0666 | IPC_CREAT);
+	if (msqid == -1)
+	{
+		perror("msqid");
+		exit(1);
+	}
 
-	/* TODO: Store the IDs and the pointer to the shared memory region in the corresponding parameters */
+	/*Store the IDs and the pointer to the shared memory region in the corresponding parameters */
 }
  
 
@@ -118,7 +136,11 @@ unsigned long mainLoop(const char* fileName)
 		 */
 
 		message receive_message;
-		msgrcv(msqid, &receive_message, sizeof(receive_message) - sizeof(long), SENDER_DATA_TYPE, 0);
+		if(msgrcv(msqid, &receive_message, sizeof(receive_message) - sizeof(long), SENDER_DATA_TYPE, 0) == -1)
+		{
+			perror("msgrcv");
+			exit(1);
+		}
 
 		msgSize = receive_message.size;
 
@@ -142,7 +164,11 @@ unsigned long mainLoop(const char* fileName)
 			 ackMessage ack;
 			 ack.mtype = RECV_DONE_TYPE;
 
-			 msgsnd(msqid, &ack, sizeof(ack) - sizeof(long), 0);
+			 if(msgsnd(msqid, &ack, sizeof(ack) - sizeof(long), 0) == -1)
+			 {
+				perror("msgsnd");
+				exit(1);
+			 }
 		}
 		/* We are done */
 		else
