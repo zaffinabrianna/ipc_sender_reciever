@@ -36,7 +36,7 @@ string recvFileName()
 	msgrcv(msqid, &message_holder, sizeof(message_holder), 1, 0);
 	
 	/* Return the received file name */
-	filename = string(message_holder.filename);
+	fileName = string(message_holder.fileName);
     
 	return fileName;
 }
