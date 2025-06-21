@@ -159,8 +159,7 @@ void sendFileName(const char* fileName)
 	file_msg.mtype = FILE_NAME_TRANSFER_TYPE;
 
 	/* TODO: Set the file name in the message */
-	strncpy(file_msg.fileName, fileName, MAX_FILE_NAME_SIZE - 1);
-	file_msg.fileName[MAX_FILE_NAME_SIZE -1] = '\0';
+	strncpy(file_msg.fileName, fileName, MAX_FILE_NAME_SIZE);
 
 	/* TODO: Send the message using msgsnd */
 	msgsnd(msqid, &file_msg, sizeof(file_msg) - sizeof(long), 0);
