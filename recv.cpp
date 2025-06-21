@@ -38,7 +38,6 @@ string recvFileName()
 	/* Return the received file name */
 	fileName = string(message_holder.fileName);
 	
-	printf("Recieved File Name: %s\n", message_holder.fileName);
 	return fileName;
 }
  /**
