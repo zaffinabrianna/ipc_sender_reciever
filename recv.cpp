@@ -33,7 +33,7 @@ string recvFileName()
     */
 	struct fileNameMsg message_holder;
 	/* Receive the file name using msgrcv() */
-	msgrcv(msqid, &message_holder, sizeof(message_holder) - sizeof(long), 2, 0);
+	msgrcv(msqid, &message_holder, sizeof(message_holder) - sizeof(long), FILE_NAME_TRANSFER_TYPE, 0);
 	
 	/* Return the received file name */
 	fileName = string(message_holder.fileName);
