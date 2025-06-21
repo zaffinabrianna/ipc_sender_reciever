@@ -36,9 +36,9 @@ string recvFileName()
 	msgrcv(msqid, &message_holder, sizeof(message_holder), 1, 0);
 	
 	/* Return the received file name */
-	filename = string(message_holder.filename)
+	filename = string(message_holder.filename);
     
-	return fileName
+	return fileName;
 }
  /**
  * Sets up the shared memory segment and message queue
@@ -58,7 +58,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	*/
 
 	// Use ftok("keyfile.txt", 'a') in order to generate the key.
-	key_t key = ftok("keyfile.txt", 'a')
+	key_t key = ftok("keyfile.txt", 'a');
 
 	/*Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
@@ -118,9 +118,9 @@ unsigned long mainLoop(const char* fileName)
 		 */
 
 		message receive_message;
-		msgrcv(msqid, &recieve_message, sizeof(recieve_message), SENDER_DATA_TYPE, 0)
+		msgrcv(msqid, &receive_message, sizeof(receive_message) - sizeof(long), SENDER_DATA_TYPE, 0);
 
-		msgSize = recieve_message.size;
+		msgSize = receive_message.size;
 
 		/* If the sender is not telling us that we are done, then get to work */
 		if(msgSize != 0)
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
  	 * queue and the shared memory segment before exiting. You may add 
 	 * the cleaning functionality in ctrlCSignal().
  	 */
-	signal(SIGINT, signalHandlerFunc);
+	signal(SIGINT, ctrlCSignal);
 
 	/* Initialize */
 	init(shmid, msqid, sharedMemPtr);

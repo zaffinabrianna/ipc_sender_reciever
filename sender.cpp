@@ -33,7 +33,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	   on the system has a unique id, but different objects may have the same key.
 	*/
 	// Use ftok("keyfile.txt", 'a') in order to generate the key.
-	ket_t key = ftok("keyfile.txt", 'a')
+	ket_t key = ftok("keyfile.txt", 'a');
 
 	/*Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
@@ -102,7 +102,7 @@ unsigned long sendFile(const char* fileName)
 		}
 		
 		/*Count the number of bytes sent. */		
-		numBytesSent += sndMsg.size();
+		numBytesSent += sndMsg.size;
 			
 		/* TODO: Send a message to the receiver telling him that the data is ready
  		 * to be read (message of type SENDER_DATA_TYPE).
@@ -157,11 +157,12 @@ void sendFileName(const char* fileName)
 	struct fileNameMsg file_msg;
 	/* TODO: Set the message type FILE_NAME_TRANSFER_TYPE */
 	file_msg.mtype = FILE_NAME_TRANSFER_TYPE;
+
 	/* TODO: Set the file name in the message */
-	filename = string(file_msg.filename);
+	strncpy(file_msg.filename, fileName, MAX_FILE_NAME_SIZE);
 
 	/* TODO: Send the message using msgsnd */
-	msgsnd(msqid, &file_msg, sizeof(filename), 0)
+	msgsnd(msqid, &file_msg, sizeof(file_msg) - sizeof(long), 0);
 }
 
 
