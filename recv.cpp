@@ -93,7 +93,7 @@ unsigned long mainLoop(const char* fileName)
 	recvFileNameStr.append("__recv");
 	
 	/* Open the file for writing */
-	FILE* fp = fopen(recvFileNameStr.c_str(), "w");
+	FILE* fp = fopen(recvFileNameStr.c_str(), "wb");
 			
 	/* Error checks */
 	if(!fp)
