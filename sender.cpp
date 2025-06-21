@@ -33,7 +33,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	   on the system has a unique id, but different objects may have the same key.
 	*/
 	// Use ftok("keyfile.txt", 'a') in order to generate the key.
-	ket_t key = ftok("keyfile.txt", 'a');
+	key_t key = ftok("keyfile.txt", 'a');
 
 	/*Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
@@ -108,7 +108,7 @@ unsigned long sendFile(const char* fileName)
  		 * to be read (message of type SENDER_DATA_TYPE).
  		 */
 		sndMsg.mtype = SENDER_DATA_TYPE;
-		msgsnd(msqid, &sndMsg, sizeof(sndMsg), - sizeof(long), 0);
+		msgsnd(msqid, &sndMsg, sizeof(sndMsg) - sizeof(long), 0);
 
 		/* TODO: Wait until the receiver sends us a message of type RECV_DONE_TYPE telling us 
  		 * that he finished saving a chunk of memory. 
@@ -148,7 +148,6 @@ void sendFileName(const char* fileName)
 	if (fileNameSize > MAX_FILE_NAME_SIZE)
 	{
 		perror("File Name Exceeds Maximum Buffer Size");
-		exit();
 	}
 
 	/* TODO: Create an instance of the struct representing the message
@@ -159,7 +158,7 @@ void sendFileName(const char* fileName)
 	file_msg.mtype = FILE_NAME_TRANSFER_TYPE;
 
 	/* TODO: Set the file name in the message */
-	strncpy(file_msg.filename, fileName, MAX_FILE_NAME_SIZE);
+	strncpy(file_msg.fileName, fileName, MAX_FILE_NAME_SIZE);
 
 	/* TODO: Send the message using msgsnd */
 	msgsnd(msqid, &file_msg, sizeof(file_msg) - sizeof(long), 0);
