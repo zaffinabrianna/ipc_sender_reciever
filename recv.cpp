@@ -28,14 +28,14 @@ string recvFileName()
 	/* The file name received from the sender */
 	string fileName;
     
-	/* TODO: declare an instance of the fileNameMsg struct to be
+	/* An instance of the fileNameMsg struct to be
 	 * used for holding the message received from the sender.
-         */
+    */
 	struct fileNameMsg message_holder;
-		/* TODO: Receive the file name using msgrcv() */
+	/* Receive the file name using msgrcv() */
 	msgrcv(msqid, &message_holder, sizeof(message_holder), 1, 0);
 	
-	/* TODO: return the received file name */
+	/* Return the received file name */
 	filename = string(message_holder.filename)
     
 	return fileName
@@ -49,26 +49,27 @@ string recvFileName()
 void init(int& shmid, int& msqid, void*& sharedMemPtr)
 {
 	
-	/* TODO: 
-        1. Create a file called keyfile.txt containing string "Hello world" (you may do
- 	    so manually or from the code).
-	2. Use ftok("keyfile.txt", 'a') in order to generate the key.
+	/* 
 	3. Use will use this key in the TODO's below. Use the same key for the queue
 	   and the shared memory segment. This also serves to illustrate the difference
  	   between the key and the id used in message queues and shared memory. The key is
 	   like the file name and the id is like the file object.  Every System V object 
 	   on the system has a unique id, but different objects may have the same key.
 	*/
-	
 
-	/* TODO: Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
-	
+	// Use ftok("keyfile.txt", 'a') in order to generate the key.
+	key = ftok("keyfile.txt", 'a')
+
+	/*Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
+	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
+
 	/* TODO: Attach to the shared memory */
-	
+	sharedMemPtr = shmat(shmid, NULL, 0);
+
 	/* TODO: Create a message queue */
-	
+	msqid = msgget(key, 0666 | IPC_CREAT);
+
 	/* TODO: Store the IDs and the pointer to the shared memory region in the corresponding parameters */
-	
 }
  
 
