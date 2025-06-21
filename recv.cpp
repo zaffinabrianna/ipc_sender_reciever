@@ -141,6 +141,8 @@ unsigned long mainLoop(const char* fileName)
 
 			 ackMessage ack;
 			 ack.mtype = RECV_DONE_TYPE;
+
+			 msgsnd(msqid, &ack, sizeof(ack) - sizeof(long), 0);
 		}
 		/* We are done */
 		else
